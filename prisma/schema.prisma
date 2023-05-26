@@ -1,0 +1,71 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+generator erd {
+  provider = "prisma-erd-generator"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model cliente {
+  id          Int       @id @unique @default(autoincrement())
+  nome        String    @db.VarChar(45)
+  cpf         String    @unique @db.Char(11)
+  endereco    endereco  @relation(fields: [endereco_id], references: [id])
+  endereco_id Int
+  locacoes    locacao[]
+}
+
+model vendedor {
+  id       Int       @id @unique @default(autoincrement())
+  nome     String    @db.VarChar(45)
+  cpf      String    @unique @db.Char(11)
+  locacoes locacao[]
+}
+
+model endereco {
+  id          Int       @id @default(autoincrement())
+  rua         String    @db.VarChar(256)
+  numero      String    @db.VarChar(10)
+  cep         String    @db.Char(8)
+  cidade      String    @db.VarChar(256)
+  estado      String    @db.VarChar(256)
+  complemento String?   @db.VarChar(256)
+  clientes    cliente[]
+}
+
+model filme {
+  id       Int       @id @unique @default(autoincrement())
+  nome     String    @unique @db.VarChar(45)
+  diretor  String    @db.VarChar(45)
+  genero   Genero
+  copias   Int
+  locacoes locacao[]
+}
+
+model locacao {
+  cliente     cliente  @relation(fields: [cliente_id], references: [id])
+  cliente_id  Int
+  filme       filme    @relation(fields: [filme_id], references: [id])
+  filme_id    Int
+  vendedor    vendedor @relation(fields: [vendedor_id], references: [id])
+  vendedor_id Int      @default(1)
+  vencimento  DateTime
+
+  @@id([cliente_id, filme_id, vendedor_id])
+}
+
+enum Genero {
+  ACAO
+  AVENTURA
+  DRAMA
+  COMEDIA
+  TERROR
+}
